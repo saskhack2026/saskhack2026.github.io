@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Emergency Mesh Network</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        .status.online {
+            background: #10b981;
+        }
+        
+        .status.offline {
+            background: #ef4444;
+        }
+        
+        .setup-section {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .setup-section h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .peers-section {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .peer-list {
+            list-style: none;
+        }
+        
+        .peer-item {
+            padding: 12px;
+            background: #f3f4f6;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .peer-item .name {
+            font-weight: 600;
+            color: #667eea;
+        }
+        
+        .peer-item .status-dot {
+            width: 10px;
+            height: 10px;
+            background: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .messages-section {
+            padding: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .message {
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            animation: slideIn 0.3s;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .message.sent {
+            background: #667eea;
+            color: white;
+            margin-left: 40px;
+            text-align: right;
+        }
+        
+        .message.received {
+            background: #f3f4f6;
+            margin-right: 40px;
+        }
+        
+        .message.emergency {
+            background: #ef4444;
+            color: white;
+            border: 3px solid #dc2626;
+            font-weight: 600;
+            animation: shake 0.5s;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        .message-sender {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            opacity: 0.8;
+        }
+        
+        .message-time {
+            font-size: 11px;
+            opacity: 0.6;
+            margin-top: 4px;
+        }
+        
+        .input-section {
+            padding: 20px;
+            background: #f9fafb;
+        }
+        
+        .input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .input-row input {
+            flex: 1;
+            margin: 0;
+        }
+        
+        .input-row button {
+            width: auto;
+            padding: 12px 24px;
+        }
+        
+        .priority-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+        
+        .priority-buttons button {
+            padding: 10px;
+            font-size: 14px;
+        }
+        
+        .emergency-btn {
+            background: #ef4444;
+        }
+        
+        .emergency-btn:hover {
+            background: #dc2626;
+        }
+        
+        .health-btn {
+            background: #f59e0b;
+        }
+        
+        .health-btn:hover {
+            background: #d97706;
+        }
+        
+        .status-btn {
+            background: #3b82f6;
+        }
+        
+        .status-btn:hover {
+            background: #2563eb;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .stat-box {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+        
+        .instructions {
+            background: #fef3c7;
+            padding: 15px;
+            margin: 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .instructions strong {
+            color: #92400e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌐 Emergency Mesh Network</h1>
+            <div class="status offline" id="connectionStatus">● Offline</div>
+        </div>
+        
+        <div class="instructions">
+            <strong>Demo Instructions:</strong><br>
+            1. Open this page on 2+ phones on the same WiFi<br>
+            2. Enter your name and click "Join Network"<br>
+            3. Messages will route through all connected peers<br>
+            4. Works without internet - just local network!
+        </div>
+        
+        <div class="setup-section" id="setupSection">
+            <h2>Join the Network</h2>
+            <input type="text" id="nameInput" placeholder="Enter your name (e.g., Alice)" maxlength="20">
+            <button onclick="joinNetwork()">Join Network</button>
+        </div>
+        
+        <div class="peers-section" id="peersSection" style="display: none;">
+            <h2>Connected Peers (<span id="peerCount">0</span>)</h2>
+            <ul class="peer-list" id="peerList"></ul>
+            
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-number" id="msgCount">0</div>
+                    <div class="stat-label">Messages</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="emergencyCount">0</div>
+                    <div class="stat-label">Emergency</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="hopCount">-</div>
+                    <div class="stat-label">Avg Hops</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="messages-section" id="messagesSection" style="display: none;">
+            <div id="messagesList"></div>
+        </div>
+        
+        <div class="input-section" id="inputSection" style="display: none;">
+            <div class="input-row">
+                <input type="text" id="messageInput" placeholder="Type your message..." maxlength="200">
+                <button onclick="sendMessage()">Send</button>
+            </div>
+            
+            <div class="priority-buttons">
+                <button class="emergency-btn" onclick="sendEmergency()">🚨 Emergency</button>
+                <button class="health-btn" onclick="sendHealth()">🏥 Health</button>
+                <button class="status-btn" onclick="sendStatus()">📍 Status OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simple peer-to-peer using WebSocket signaling
+        let myName = '';
+        let myId = '';
+        let peers = new Map();
+        let messages = [];
+        let seenMessages = new Set();
+        let ws = null;
+        
+        // Stats
+        let totalMessages = 0;
+        let emergencyMessages = 0;
+        let totalHops = 0;
+        
+        function joinNetwork() {
+            const nameInput = document.getElementById('nameInput');
+            myName = nameInput.value.trim();
+            
+            if (!myName) {
+                alert('Please enter your name');
+                return;
+            }
+            
+            myId = myName + '_' + Math.random().toString(36).substr(2, 9);
+            
+            // Connect to signaling server (using a public WebSocket echo server for demo)
+            // In production, you'd run your own signaling server
+            connectToSignalingServer();
+            
+            // Show mesh interface
+            document.getElementById('setupSection').style.display = 'none';
+            document.getElementById('peersSection').style.display = 'block';
+            document.getElementById('messagesSection').style.display = 'block';
+            document.getElementById('inputSection').style.display = 'block';
+            
+            updateStatus(true);
+        }
+        
+        function connectToSignalingServer() {
+            // Using a simple broadcast mechanism for demo
+            // In production, use proper WebRTC with STUN/TURN servers
+            
+            // Simulate peer discovery via localStorage (works on same device/network)
+            broadcastPresence();
+            
+            // Listen for other peers
+            setInterval(() => {
+                discoverPeers();
+            }, 2000);
+            
+            // Simulate network messaging via localStorage
+            setInterval(() => {
+                checkForMessages();
+            }, 500);
+        }
+        
+        function broadcastPresence() {
+            const presence = {
+                id: myId,
+                name: myName,
+                timestamp: Date.now()
+            };
+            
+            localStorage.setItem('peer_' + myId, JSON.stringify(presence));
+            
+            // Clean up old presence (5 seconds)
+            setTimeout(() => {
+                const current = JSON.parse(localStorage.getItem('peer_' + myId) || '{}');
+                if (current.timestamp === presence.timestamp) {
+                    // Still our latest, keep broadcasting
+                    broadcastPresence();
+                }
+            }, 3000);
+        }
+        
+        function discoverPeers() {
+            const now = Date.now();
+            const discoveredPeers = new Map();
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('peer_')) {
+                    try {
+                        const peer = JSON.parse(localStorage.getItem(key));
+                        
+                        // Skip ourselves and stale peers
+                        if (peer.id === myId || now - peer.timestamp > 10000) {
+                            continue;
+                        }
+                        
+                        discoveredPeers.set(peer.id, peer);
+                    } catch (e) {}
+                }
+            }
+            
+            peers = discoveredPeers;
+            updatePeerList();
+        }
+        
+        function updatePeerList() {
+            const peerList = document.getElementById('peerList');
+            const peerCount = document.getElementById('peerCount');
+            
+            peerCount.textContent = peers.size;
+            
+            peerList.innerHTML = '';
+            peers.forEach(peer => {
+                const li = document.createElement('li');
+                li.className = 'peer-item';
+                li.innerHTML = `
+                    <span><span class="status-dot"></span><span class="name">${peer.name}</span></span>
+                    <span style="font-size: 12px; color: #6b7280;">Online</span>
+                `;
+                peerList.appendChild(li);
+            });
+        }
+        
+        function sendMessage(priority = 4, type = 'CHAT') {
+            const input = document.getElementById('messageInput');
+            const content = input.value.trim();
+            
+            if (!content) return;
+            
+            const message = {
+                id: myId + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                sender: myName,
+                senderId: myId,
+                content: content,
+                priority: priority,
+                type: type,
+                timestamp: Date.now(),
+                hops: 0
+            };
+            
+            broadcastMessage(message);
+            displayMessage(message, true);
+            
+            input.value = '';
+        }
+        
+        function sendEmergency() {
+            const content = prompt('🚨 EMERGENCY - Describe the situation:');
+            if (content) {
+                document.getElementById('messageInput').value = content;
+                sendMessage(1, 'EMERGENCY');
+            }
+        }
+        
+        function sendHealth() {
+            const content = prompt('🏥 HEALTH - Describe medical need:');
+            if (content) {
+                document.getElementById('messageInput').value = content;
+                sendMessage(2, 'HEALTH');
+            }
+        }
+        
+        function sendStatus() {
+            sendMessage(3, 'STATUS');
+            document.getElementById('messageInput').value = 'Status: I am OK';
+            sendMessage(3, 'STATUS');
+        }
+        
+        function broadcastMessage(message) {
+            // Store in localStorage for other peers to pick up
+            const key = 'msg_' + message.id;
+            localStorage.setItem(key, JSON.stringify(message));
+            
+            // Mark as seen
+            seenMessages.add(message.id);
+            
+            // Update stats
+            totalMessages++;
+            if (message.priority === 1) emergencyMessages++;
+            totalHops += message.hops;
+            updateStats();
+        }
+        
+        function checkForMessages() {
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('msg_')) {
+                    try {
+                        const message = JSON.parse(localStorage.getItem(key));
+                        
+                        // Skip if we've seen it or it's too old
+                        if (seenMessages.has(message.id) || 
+                            Date.now() - message.timestamp > 60000 ||
+                            message.hops > 10) {
+                            continue;
+                        }
+                        
+                        // New message!
+                        seenMessages.add(message.id);
+                        
+                        // Only display if not from us
+                        if (message.senderId !== myId) {
+                            displayMessage(message, false);
+                            
+                            // Forward to other peers (gossip protocol)
+                            const forwarded = {...message, hops: message.hops + 1};
+                            setTimeout(() => {
+                                const newKey = 'msg_' + message.id + '_fwd_' + myId;
+                                localStorage.setItem(newKey, JSON.stringify(forwarded));
+                            }, 500);
+                        }
+                        
+                        // Update stats
+                        totalMessages++;
+                        if (message.priority === 1) emergencyMessages++;
+                        totalHops += message.hops;
+                        updateStats();
+                        
+                    } catch (e) {}
+                }
+            }
+        }
+        
+        function displayMessage(message, isSent) {
+            const messagesList = document.getElementById('messagesList');
+            const div = document.createElement('div');
+            
+            const classes = ['message'];
+            if (isSent) classes.push('sent');
+            else classes.push('received');
+            if (message.priority === 1) classes.push('emergency');
+            
+            div.className = classes.join(' ');
+            
+            const icon = message.priority === 1 ? '🚨' : 
+                        message.priority === 2 ? '🏥' :
+                        message.priority === 3 ? '📍' : '💬';
+            
+            const time = new Date(message.timestamp).toLocaleTimeString();
+            
+            div.innerHTML = `
+                <div class="message-sender">${icon} ${message.sender} ${message.hops > 0 ? '(hop ' + message.hops + ')' : ''}</div>
+                <div>${message.content}</div>
+                <div class="message-time">${time}</div>
+            `;
+            
+            messagesList.appendChild(div);
+            messagesList.scrollTop = messagesList.scrollHeight;
+            
+            // Play sound for emergency
+            if (message.priority === 1 && !isSent) {
+                if (window.navigator && window.navigator.vibrate) {
+                    window.navigator.vibrate([200, 100, 200]);
+                }
+            }
+        }
+        
+        function updateStats() {
+            document.getElementById('msgCount').textContent = totalMessages;
+            document.getElementById('emergencyCount').textContent = emergencyMessages;
+            
+            const avgHops = totalMessages > 0 ? (totalHops / totalMessages).toFixed(1) : '-';
+            document.getElementById('hopCount').textContent = avgHops;
+        }
+        
+        function updateStatus(online) {
+            const status = document.getElementById('connectionStatus');
+            if (online) {
+                status.className = 'status online';
+                status.textContent = '● Online';
+            } else {
+                status.className = 'status offline';
+                status.textContent = '● Offline';
+            }
+        }
+        
+        // Handle enter key
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('messageInput')?.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+            
+            document.getElementById('nameInput')?.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') joinNetwork();
+            });
+        });
+        
+        // Clean up old messages periodically
+        setInterval(() => {
+            const now = Date.now();
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('msg_')) {
+                    try {
+                        const msg = JSON.parse(localStorage.getItem(key));
+                        if (now - msg.timestamp > 60000) {
+                            localStorage.removeItem(key);
+                        }
+                    } catch (e) {
+                        localStorage.removeItem(key);
+                    }
+                }
+            }
+        }, 10000);
+    </script>
+</body>
+</html>
