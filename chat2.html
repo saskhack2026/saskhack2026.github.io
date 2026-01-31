@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Saskatchewan Services Hub - Unified Customer Support</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #2C5F2D 0%, #065A82 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+            gap: 20px;
+            height: 90vh;
+        }
+
+        .sidebar {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            overflow-y: auto;
+        }
+
+        .sidebar h2 {
+            font-size: 20px;
+            color: #2C5F2D;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #97BC62;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #2C5F2D;
+        }
+
+        .stat-value {
+            font-size: 28px;
+            font-weight: bold;
+            color: #2C5F2D;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: #718096;
+            margin-top: 5px;
+        }
+
+        .service-list {
+            list-style: none;
+            margin-top: 15px;
+        }
+
+        .service-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: #f7fafc;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .service-item:hover {
+            background: #e2e8f0;
+            transform: translateX(5px);
+        }
+
+        .service-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .sasktel { background: #0066cc; }
+        .saskpower { background: #00a651; }
+        .saskenergy { background: #ff6b35; }
+        .sgi { background: #d32f2f; }
+
+        .service-name {
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .service-status {
+            margin-left: auto;
+            font-size: 12px;
+            color: #48bb78;
+        }
+
+        .chat-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-header {
+            background: #2C5F2D;
+            color: white;
+            padding: 20px;
+        }
+
+        .chat-header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .chat-header p {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .accessibility-bar {
+            background: #065A82;
+            padding: 10px 20px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .accessibility-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.2s;
+        }
+
+        .accessibility-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .accessibility-btn.active {
+            background: rgba(255,255,255,0.4);
+        }
+
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f7fafc;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message.bot {
+            justify-content: flex-start;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message-content {
+            max-width: 75%;
+            padding: 12px 16px;
+            border-radius: 12px;
+            line-height: 1.5;
+        }
+
+        .bot .message-content {
+            background: #e2e8f0;
+            color: #2d3748;
+            border-bottom-left-radius: 4px;
+        }
+
+        .user .message-content {
+            background: #2C5F2D;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+
+        .quick-replies {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .quick-reply-btn {
+            background: white;
+            border: 2px solid #2C5F2D;
+            color: #2C5F2D;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .quick-reply-btn:hover {
+            background: #2C5F2D;
+            color: white;
+        }
+
+        .chat-input {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input input {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #cbd5e0;
+            border-radius: 24px;
+            font-size: 14px;
+            outline: none;
+        }
+
+        .chat-input input:focus {
+            border-color: #2C5F2D;
+        }
+
+        .chat-input button {
+            background: #2C5F2D;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 24px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: background 0.2s;
+        }
+
+        .chat-input button:hover {
+            background: #1a4020;
+        }
+
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 12px 16px;
+            background: #e2e8f0;
+            border-radius: 12px;
+            border-bottom-left-radius: 4px;
+            width: fit-content;
+        }
+
+        .typing-indicator span {
+            width: 8px;
+            height: 8px;
+            background: #718096;
+            border-radius: 50%;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-indicator span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-indicator span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                transform: translateY(0);
+            }
+            30% {
+                transform: translateY(-10px);
+            }
+        }
+
+        .service-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-right: 6px;
+        }
+
+        .badge-sasktel { background: #0066cc; color: white; }
+        .badge-saskpower { background: #00a651; color: white; }
+        .badge-saskenergy { background: #ff6b35; color: white; }
+        .badge-sgi { background: #d32f2f; color: white; }
+
+        .info-box {
+            background: #edf2f7;
+            border-left: 4px solid #065A82;
+            padding: 12px;
+            margin-top: 10px;
+            border-radius: 4px;
+            font-size: 13px;
+        }
+
+        @media (max-width: 968px) {
+            .container {
+                grid-template-columns: 1fr;
+            }
+            .sidebar {
+                display: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar with stats -->
+        <div class="sidebar">
+            <h2>📊 Live Dashboard</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalChats">0</div>
+                    <div class="stat-label">Total Chats</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="resolvedQueries">0</div>
+                    <div class="stat-label">Resolved</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="avgResponseTime">< 1s</div>
+                    <div class="stat-label">Avg Response</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">96%</div>
+                    <div class="stat-label">Satisfaction</div>
+                </div>
+            </div>
+
+            <h2>🏢 Services</h2>
+            <ul class="service-list">
+                <li class="service-item" onclick="selectService('sasktel')">
+                    <div class="service-icon sasktel">ST</div>
+                    <span class="service-name">SaskTel</span>
+                    <span class="service-status">● Online</span>
+                </li>
+                <li class="service-item" onclick="selectService('saskpower')">
+                    <div class="service-icon saskpower">SP</div>
+                    <span class="service-name">SaskPower</span>
+                    <span class="service-status">● Online</span>
+                </li>
+                <li class="service-item" onclick="selectService('saskenergy')">
+                    <div class="service-icon saskenergy">SE</div>
+                    <span class="service-name">SaskEnergy</span>
+                    <span class="service-status">● Online</span>
+                </li>
+                <li class="service-item" onclick="selectService('sgi')">
+                    <div class="service-icon sgi">SGI</div>
+                    <span class="service-name">SGI</span>
+                    <span class="service-status">● Online</span>
+                </li>
+            </ul>
+
+            <div class="info-box">
+                <strong>💡 Hackathon Demo</strong><br>
+                This prototype demonstrates AI-powered unified customer support for Saskatchewan's Crown corporations.
+            </div>
+        </div>
+
+        <!-- Main chat interface -->
+        <div class="chat-container">
+            <div class="chat-header">
+                <h1>🏢 Saskatchewan Services Hub</h1>
+                <p>Unified support for SaskTel • SaskPower • SaskEnergy • SGI</p>
+            </div>
+
+            <div class="accessibility-bar">
+                <span style="font-size: 12px; opacity: 0.9;">Accessibility:</span>
+                <button class="accessibility-btn" onclick="toggleAccessibility('large-text')">
+                    🔤 Large Text
+                </button>
+                <button class="accessibility-btn" onclick="toggleAccessibility('high-contrast')">
+                    ⚫ High Contrast
+                </button>
+                <button class="accessibility-btn" onclick="toggleAccessibility('translate')">
+                    🌐 Translate
+                </button>
+            </div>
+
+            <div class="chat-messages" id="chatMessages">
+                <!-- Messages will be added here -->
+            </div>
+
+            <div class="chat-input">
+                <input type="text" id="userInput" placeholder="Ask about billing, outages, claims, or any service..." autocomplete="off">
+                <button onclick="sendMessage()">Send</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatMessages = document.getElementById('chatMessages');
+        const userInput = document.getElementById('userInput');
+        let totalChats = 0;
+        let resolvedQueries = 0;
+
+        // Enhanced knowledge base
+        const knowledgeBase = {
+            sasktel: {
+                name: "SaskTel",
+                badge: "badge-sasktel",
+                keywords: ["sasktel", "internet", "phone", "cell", "mobile", "wifi", "wi-fi", "data", "plan", "wireless", "fiber", "broadband"],
+                faqs: {
+                    "bill": "You can view and pay your SaskTel bill online through MySaskTel. Bills are typically due on the 21st of each month. You can also set up automatic payments for convenience.",
+                    "outage": "To check service status or report an outage, visit sasktel.com/outages or call 1-800-SASKTEL (1-800-727-5835). Our team is available 24/7 for urgent issues.",
+                    "plan": "SaskTel offers various plans for internet, TV, and mobile services. You can compare plans online, chat with our team, or visit any SaskTel store for personalized recommendations.",
+                    "upgrade": "To upgrade your service or change your plan, log into MySaskTel and select 'Manage Services'. You can also call 1-800-SASKTEL for assistance with plan changes."
+                }
+            },
+            saskpower: {
+                name: "SaskPower",
+                badge: "badge-saskpower",
+                keywords: ["saskpower", "power", "electricity", "outage", "meter", "hydro", "electric", "voltage", "grid"],
+                faqs: {
+                    "bill": "SaskPower bills are issued monthly and can be viewed through MySaskPower. You can also sign up for equal payment plans to manage seasonal variations in usage.",
+                    "outage": "For power outages, call 310-2220 (no area code needed) from anywhere in Saskatchewan, or report via the SaskPower app. For emergencies, call 1-888-757-6937.",
+                    "meter": "SaskPower uses smart meters that automatically send readings. You can view your daily usage patterns in MySaskPower to better understand your consumption.",
+                    "solar": "SaskPower offers net metering programs for customers interested in solar power. Visit saskpower.com/solar to learn about installation requirements and credits."
+                }
+            },
+            saskenergy: {
+                name: "SaskEnergy",
+                badge: "badge-saskenergy",
+                keywords: ["saskenergy", "gas", "natural gas", "heating", "furnace", "thermostat", "leak"],
+                faqs: {
+                    "bill": "SaskEnergy bills can be viewed and paid online through your account. Equal payment plans help manage seasonal costs by spreading them throughout the year.",
+                    "leak": "⚠️ EMERGENCY: If you smell gas or suspect a leak, leave immediately and call 1-888-700-0427 from a safe location. Do not use any electrical devices or create sparks.",
+                    "service": "For new service connections, disconnections, or reconnections, call 1-800-567-8899 or submit a request online. Allow 2-3 business days for processing.",
+                    "efficiency": "SaskEnergy offers energy efficiency programs and rebates for furnace upgrades, home insulation, and smart thermostats. Visit saskenergy.com/rebates for details."
+                }
+            },
+            sgi: {
+                name: "SGI",
+                badge: "badge-sgi",
+                keywords: ["sgi", "insurance", "auto", "vehicle", "registration", "claim", "accident", "driver", "license", "collision"],
+                faqs: {
+                    "claim": "To report a claim, call SGI's 24/7 Claims Contact Centre at 1-800-667-9868. You can also start a claim online through mySGI. Have your policy and vehicle information ready.",
+                    "registration": "Vehicle registrations can be renewed online through mySGI or at any SGI motor license issuer. Renewal notices are sent about 30 days before expiry.",
+                    "insurance": "SGI provides mandatory Auto Fund insurance for all Saskatchewan vehicles. For additional optional coverage, contact an SGI-licensed insurance broker.",
+                    "license": "To renew your driver's license, visit any motor license issuer with your current license, proof of address, and payment. Online renewal is available for some license classes."
+                }
+            }
+        };
+
+        // Initial greeting
+        window.onload = function() {
+            setTimeout(() => {
+                addBotMessage("👋 Welcome to the Saskatchewan Services Hub! I'm your AI assistant helping you navigate SaskTel, SaskPower, SaskEnergy, and SGI services.");
+                setTimeout(() => {
+                    addBotMessage("I can help you with billing questions, service issues, or connect you with the right team. What brings you here today?");
+                    setTimeout(() => {
+                        showQuickReplies([
+                            "📱 SaskTel Support",
+                            "⚡ SaskPower Support",
+                            "🔥 SaskEnergy Support",
+                            "🚗 SGI Support",
+                            "❓ General Question"
+                        ]);
+                    }, 800);
+                }, 1000);
+            }, 500);
+        };
+
+        function updateStats() {
+            document.getElementById('totalChats').textContent = totalChats;
+            document.getElementById('resolvedQueries').textContent = resolvedQueries;
+        }
+
+        function addMessage(content, isUser) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'bot'}`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = content;
+            
+            messageDiv.appendChild(contentDiv);
+            chatMessages.appendChild(messageDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+
+            if (!isUser) {
+                totalChats++;
+                updateStats();
+            }
+        }
+
+        function addBotMessage(message) {
+            addMessage(message, false);
+        }
+
+        function addUserMessage(message) {
+            addMessage(message, true);
+        }
+
+        function showTypingIndicator() {
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot';
+            typingDiv.id = 'typing-indicator';
+            
+            const indicator = document.createElement('div');
+            indicator.className = 'typing-indicator';
+            indicator.innerHTML = '<span></span><span></span><span></span>';
+            
+            typingDiv.appendChild(indicator);
+            chatMessages.appendChild(typingDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        function showQuickReplies(options) {
+            const repliesDiv = document.createElement('div');
+            repliesDiv.className = 'quick-replies';
+            
+            options.forEach(option => {
+                const btn = document.createElement('button');
+                btn.className = 'quick-reply-btn';
+                btn.textContent = option;
+                btn.onclick = () => handleQuickReply(option);
+                repliesDiv.appendChild(btn);
+            });
+            
+            chatMessages.appendChild(repliesDiv);
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        function handleQuickReply(reply) {
+            document.querySelectorAll('.quick-replies').forEach(el => el.remove());
+            addUserMessage(reply);
+            processMessage(reply.toLowerCase());
+        }
+
+        function identifyService(message) {
+            for (const [key, service] of Object.entries(knowledgeBase)) {
+                if (service.keywords.some(keyword => message.includes(keyword))) {
+                    return key;
+                }
+            }
+            return null;
+        }
+
+        function processMessage(message) {
+            showTypingIndicator();
+            
+            setTimeout(() => {
+                removeTypingIndicator();
+                
+                const service = identifyService(message);
+                
+                if (service) {
+                    const serviceData = knowledgeBase[service];
+                    
+                    // Check for specific FAQ matches
+                    let faqMatch = null;
+                    for (const [key, answer] of Object.entries(serviceData.faqs)) {
+                        if (message.includes(key)) {
+                            faqMatch = answer;
+                            break;
+                        }
+                    }
+                    
+                    if (faqMatch) {
+                        addBotMessage(`<span class="service-badge ${serviceData.badge}">${serviceData.name}</span>${faqMatch}`);
+                        resolvedQueries++;
+                        updateStats();
+                        
+                        setTimeout(() => {
+                            addBotMessage("Was this helpful? I can also:");
+                            showQuickReplies([
+                                "📞 Request Callback",
+                                "💬 Chat with Agent",
+                                "❓ Ask Another Question"
+                            ]);
+                        }, 1000);
+                    } else {
+                        addBotMessage(`<span class="service-badge ${serviceData.badge}">${serviceData.name}</span>I can help you with ${serviceData.name}. What specifically do you need help with?`);
+                        
+                        setTimeout(() => {
+                            const topics = Object.keys(serviceData.faqs).map(k => 
+                                k.charAt(0).toUpperCase() + k.slice(1)
+                            );
+                            topics.push("💬 Speak to Agent");
+                            showQuickReplies(topics);
+                        }, 800);
+                    }
+                } else if (message.includes("callback") || message.includes("call back")) {
+                    addBotMessage("📞 I'd be happy to arrange a callback! A representative will contact you within 2 business hours. Which service do you need?");
+                    showQuickReplies(["SaskTel", "SaskPower", "SaskEnergy", "SGI"]);
+                } else if (message.includes("agent") || message.includes("representative") || message.includes("speak")) {
+                    addBotMessage("💬 Connecting you to our next available agent. Please hold...");
+                    setTimeout(() => {
+                        addBotMessage("✅ <em>In production, this would seamlessly transfer you to the appropriate Crown corporation's live chat with full conversation context.</em>");
+                        resolvedQueries++;
+                        updateStats();
+                    }, 2000);
+                } else {
+                    addBotMessage("I'm here to help with SaskTel, SaskPower, SaskEnergy, or SGI. Which service do you need assistance with?");
+                    showQuickReplies([
+                        "📱 SaskTel",
+                        "⚡ SaskPower",
+                        "🔥 SaskEnergy",
+                        "🚗 SGI"
+                    ]);
+                }
+            }, 1000);
+        }
+
+        function sendMessage() {
+            const message = userInput.value.trim();
+            
+            if (message === '') return;
+            
+            addUserMessage(message);
+            userInput.value = '';
+            
+            processMessage(message.toLowerCase());
+        }
+
+        function selectService(service) {
+            const serviceNames = {
+                sasktel: "📱 SaskTel Support",
+                saskpower: "⚡ SaskPower Support",
+                saskenergy: "🔥 SaskEnergy Support",
+                sgi: "🚗 SGI Support"
+            };
+            
+            handleQuickReply(serviceNames[service]);
+        }
+
+        function toggleAccessibility(feature) {
+            const btn = event.target;
+            btn.classList.toggle('active');
+            
+            if (feature === 'large-text') {
+                addBotMessage("✓ Large text mode " + (btn.classList.contains('active') ? "enabled" : "disabled") + ". This feature would increase text size for better readability.");
+            } else if (feature === 'high-contrast') {
+                addBotMessage("✓ High contrast mode " + (btn.classList.contains('active') ? "enabled" : "disabled") + ". This feature would enhance visual accessibility.");
+            } else if (feature === 'translate') {
+                addBotMessage("🌐 Translation feature would allow conversation in multiple languages including Cree, Dene, and French, ensuring accessibility for all Saskatchewan residents.");
+            }
+        }
+
+        // Allow Enter key to send message
+        userInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+    </script>
+</body>
+</html>
