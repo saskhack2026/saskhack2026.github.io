@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Emergency Mesh Network</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .status {
+            display: inline-block;
+            padding: 8px 16px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 20px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        .status.online {
+            background: #10b981;
+        }
+        
+        .status.offline {
+            background: #ef4444;
+        }
+        
+        .instructions {
+            background: #fef3c7;
+            padding: 15px;
+            margin: 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .setup-section {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .setup-section h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #667eea;
+        }
+        
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        button {
+            width: 100%;
+            padding: 14px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        button:hover {
+            background: #5568d3;
+        }
+        
+        button:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+        
+        .peers-section {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .stat-box {
+            background: white;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .stat-number {
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 11px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+        
+        .messages-section {
+            padding: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        
+        .message {
+            padding: 12px;
+            margin-bottom: 10px;
+            border-radius: 12px;
+            animation: slideIn 0.3s;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .message.sent {
+            background: #667eea;
+            color: white;
+            margin-left: 40px;
+            text-align: right;
+        }
+        
+        .message.received {
+            background: #f3f4f6;
+            margin-right: 40px;
+        }
+        
+        .message.emergency {
+            background: #ef4444;
+            color: white;
+            border: 3px solid #dc2626;
+            font-weight: 600;
+            animation: shake 0.5s;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        .message-sender {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 4px;
+            opacity: 0.8;
+        }
+        
+        .message-time {
+            font-size: 11px;
+            opacity: 0.6;
+            margin-top: 4px;
+        }
+        
+        .input-section {
+            padding: 20px;
+            background: #f9fafb;
+        }
+        
+        .input-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .input-row input {
+            flex: 1;
+            margin: 0;
+        }
+        
+        .input-row button {
+            width: auto;
+            padding: 12px 24px;
+        }
+        
+        .priority-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+        
+        .priority-buttons button {
+            padding: 10px;
+            font-size: 14px;
+        }
+        
+        .emergency-btn {
+            background: #ef4444;
+        }
+        
+        .emergency-btn:hover {
+            background: #dc2626;
+        }
+        
+        .health-btn {
+            background: #f59e0b;
+        }
+        
+        .health-btn:hover {
+            background: #d97706;
+        }
+        
+        .status-btn {
+            background: #3b82f6;
+        }
+        
+        .status-btn:hover {
+            background: #2563eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌐 Emergency Mesh Network</h1>
+            <div class="status online" id="connectionStatus">● Online (Server Polling)</div>
+        </div>
+        
+        <div class="instructions">
+            <strong>Demo Instructions:</strong><br>
+            1. Open this page on multiple phones/devices<br>
+            2. All devices poll the same server file for messages<br>
+            3. Messages sync automatically every 2 seconds<br>
+            4. Works with just Apache - no WebSocket needed!
+        </div>
+        
+        <div class="setup-section" id="setupSection">
+            <h2>Join the Network</h2>
+            <input type="text" id="nameInput" placeholder="Enter your name (e.g., Alice)" maxlength="20">
+            <button onclick="joinNetwork()">Join Network</button>
+        </div>
+        
+        <div class="peers-section" id="peersSection" style="display: none;">
+            <h2>Network Status</h2>
+            <div class="stats">
+                <div class="stat-box">
+                    <div class="stat-number" id="peerCount">0</div>
+                    <div class="stat-label">Active Peers</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="msgCount">0</div>
+                    <div class="stat-label">Messages</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-number" id="emergencyCount">0</div>
+                    <div class="stat-label">Emergency</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="messages-section" id="messagesSection" style="display: none;">
+            <div id="messagesList"></div>
+        </div>
+        
+        <div class="input-section" id="inputSection" style="display: none;">
+            <div class="input-row">
+                <input type="text" id="messageInput" placeholder="Type your message..." maxlength="200">
+                <button onclick="sendMessage()">Send</button>
+            </div>
+            
+            <div class="priority-buttons">
+                <button class="emergency-btn" onclick="sendEmergency()">🚨 Emergency</button>
+                <button class="health-btn" onclick="sendHealth()">🏥 Health</button>
+                <button class="status-btn" onclick="sendStatus()">📍 I'm OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration - change this to match your server
+        const SERVER_URL = window.location.origin; // Uses same server as the HTML page
+        const MESSAGES_FILE = 'mesh-messages.json';
+        const PEERS_FILE = 'mesh-peers.json';
+        
+        let myName = '';
+        let myId = '';
+        let totalMessages = 0;
+        let emergencyMessages = 0;
+        let seenMessages = new Set();
+        let lastFetchTime = 0;
+        
+        // Poll for new messages every 2 seconds
+        setInterval(pollMessages, 2000);
+        
+        // Update peer heartbeat every 5 seconds
+        setInterval(updateHeartbeat, 5000);
+        
+        async function joinNetwork() {
+            const nameInput = document.getElementById('nameInput');
+            myName = nameInput.value.trim();
+            
+            if (!myName) {
+                alert('Please enter your name');
+                return;
+            }
+            
+            myId = myName + '_' + Math.random().toString(36).substr(2, 9);
+            
+            // Show mesh interface
+            document.getElementById('setupSection').style.display = 'none';
+            document.getElementById('peersSection').style.display = 'block';
+            document.getElementById('messagesSection').style.display = 'block';
+            document.getElementById('inputSection').style.display = 'block';
+            
+            // Send initial heartbeat
+            await updateHeartbeat();
+            
+            // Start polling
+            await pollMessages();
+        }
+        
+        async function pollMessages() {
+            if (!myId) return;
+            
+            try {
+                // Fetch messages file with cache-busting
+                const response = await fetch(`${SERVER_URL}/${MESSAGES_FILE}?t=${Date.now()}`);
+                
+                if (!response.ok) {
+                    // File doesn't exist yet, create it
+                    if (response.status === 404) {
+                        await saveMessages([]);
+                        return;
+                    }
+                    throw new Error('Failed to fetch messages');
+                }
+                
+                const messages = await response.json();
+                
+                // Process new messages
+                messages.forEach(msg => {
+                    if (!seenMessages.has(msg.id) && msg.senderId !== myId) {
+                        seenMessages.add(msg.id);
+                        displayMessage(msg, false);
+                    }
+                });
+                
+                // Fetch and update peer count
+                await updatePeerCount();
+                
+            } catch (error) {
+                console.error('Poll error:', error);
+            }
+        }
+        
+        async function sendMessage(priority = 4, type = 'CHAT') {
+            const input = document.getElementById('messageInput');
+            const content = input.value.trim();
+            
+            if (!content) return;
+            
+            const message = {
+                id: myId + '_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                sender: myName,
+                senderId: myId,
+                content: content,
+                priority: priority,
+                msgType: type,
+                timestamp: Date.now(),
+                hops: 0
+            };
+            
+            // Mark as seen
+            seenMessages.add(message.id);
+            
+            // Save to server
+            try {
+                const response = await fetch(`${SERVER_URL}/${MESSAGES_FILE}?t=${Date.now()}`);
+                let messages = [];
+                
+                if (response.ok) {
+                    messages = await response.json();
+                }
+                
+                messages.push(message);
+                
+                // Keep only last 100 messages to prevent file from growing too large
+                if (messages.length > 100) {
+                    messages = messages.slice(-100);
+                }
+                
+                await saveMessages(messages);
+                
+                // Display locally
+                displayMessage(message, true);
+                
+                input.value = '';
+            } catch (error) {
+                console.error('Send error:', error);
+                alert('Failed to send message. Make sure messages file is writable on server.');
+            }
+        }
+        
+        async function saveMessages(messages) {
+            // Use a PHP script to save the JSON file
+            const formData = new FormData();
+            formData.append('data', JSON.stringify(messages));
+            formData.append('file', MESSAGES_FILE);
+            
+            await fetch(`${SERVER_URL}/save-mesh-data.php`, {
+                method: 'POST',
+                body: formData
+            });
+        }
+        
+        async function updateHeartbeat() {
+            if (!myId) return;
+            
+            try {
+                // Fetch current peers
+                const response = await fetch(`${SERVER_URL}/${PEERS_FILE}?t=${Date.now()}`);
+                let peers = {};
+                
+                if (response.ok) {
+                    peers = await response.json();
+                }
+                
+                // Add/update our heartbeat
+                peers[myId] = {
+                    name: myName,
+                    timestamp: Date.now()
+                };
+                
+                // Remove stale peers (older than 15 seconds)
+                const now = Date.now();
+                Object.keys(peers).forEach(peerId => {
+                    if (now - peers[peerId].timestamp > 15000) {
+                        delete peers[peerId];
+                    }
+                });
+                
+                // Save peers
+                const formData = new FormData();
+                formData.append('data', JSON.stringify(peers));
+                formData.append('file', PEERS_FILE);
+                
+                await fetch(`${SERVER_URL}/save-mesh-data.php`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+            } catch (error) {
+                console.error('Heartbeat error:', error);
+            }
+        }
+        
+        async function updatePeerCount() {
+            try {
+                const response = await fetch(`${SERVER_URL}/${PEERS_FILE}?t=${Date.now()}`);
+                
+                if (response.ok) {
+                    const peers = await response.json();
+                    // Subtract 1 for ourselves
+                    const count = Object.keys(peers).length - 1;
+                    document.getElementById('peerCount').textContent = Math.max(0, count);
+                }
+            } catch (error) {
+                console.error('Peer count error:', error);
+            }
+        }
+        
+        function displayMessage(message, isSent) {
+            const messagesList = document.getElementById('messagesList');
+            const div = document.createElement('div');
+            
+            const classes = ['message'];
+            if (isSent) classes.push('sent');
+            else classes.push('received');
+            if (message.priority === 1) classes.push('emergency');
+            
+            div.className = classes.join(' ');
+            
+            const icon = message.priority === 1 ? '🚨' : 
+                        message.priority === 2 ? '🏥' :
+                        message.priority === 3 ? '📍' : '💬';
+            
+            const time = new Date(message.timestamp).toLocaleTimeString();
+            
+            div.innerHTML = `
+                <div class="message-sender">${icon} ${message.sender} ${message.hops > 0 ? '(hop ' + message.hops + ')' : ''}</div>
+                <div>${message.content}</div>
+                <div class="message-time">${time}</div>
+            `;
+            
+            messagesList.appendChild(div);
+            messagesList.scrollTop = messagesList.scrollHeight;
+            
+            // Update stats
+            totalMessages++;
+            if (message.priority === 1) emergencyMessages++;
+            updateStats();
+            
+            // Vibrate for emergency
+            if (message.priority === 1 && !isSent) {
+                if (window.navigator && window.navigator.vibrate) {
+                    window.navigator.vibrate([200, 100, 200]);
+                }
+            }
+        }
+        
+        function sendEmergency() {
+            const content = prompt('🚨 EMERGENCY - Describe the situation:');
+            if (content) {
+                document.getElementById('messageInput').value = content;
+                sendMessage(1, 'EMERGENCY');
+            }
+        }
+        
+        function sendHealth() {
+            const content = prompt('🏥 HEALTH - Describe medical need:');
+            if (content) {
+                document.getElementById('messageInput').value = content;
+                sendMessage(2, 'HEALTH');
+            }
+        }
+        
+        function sendStatus() {
+            document.getElementById('messageInput').value = "I'm OK - Safe and accounted for";
+            sendMessage(3, 'STATUS');
+        }
+        
+        function updateStats() {
+            document.getElementById('msgCount').textContent = totalMessages;
+            document.getElementById('emergencyCount').textContent = emergencyMessages;
+        }
+        
+        // Handle enter key
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('messageInput')?.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') sendMessage();
+            });
+            
+            document.getElementById('nameInput')?.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') joinNetwork();
+            });
+        });
+    </script>
+</body>
+</html>
